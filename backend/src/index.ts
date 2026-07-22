@@ -18,11 +18,12 @@ const bookController = new BookController(bookService);
 // RecommendationService dépend de l'interface IBookProvider,
 // que bookService implémente (pas de dépendance à la classe concrète)
 const recommendationService = new RecommendationService(bookService);
-const recommendationController = new RecommendationController(recommendationService);
+const recommendationController = new RecommendationController(recommendationService, bookService);
 
 app.get('/books', bookController.getAllBooks);
 app.get('/books/:id', bookController.getBookById);
 app.get('/recommendation', recommendationController.getRecommendations);
+app.post('/recommendation/profile', recommendationController.getRecommendationsByProfile);
 
 app.get('/', (req, res) => {
   res.json({ message: 'API catalogue de livres opérationnelle' });

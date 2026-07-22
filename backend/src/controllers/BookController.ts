@@ -19,6 +19,11 @@ export class BookController {
 
   getBookById = (req: Request, res: Response): void => {
     const id = Number(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide' });
+      return;
+    }
+
     const book = this.bookService.getBookById(id);
 
     if (!book) {

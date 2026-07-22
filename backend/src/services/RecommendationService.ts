@@ -1,22 +1,21 @@
 import { Book } from '../models/Book';
 import { IBookProvider } from './interfaces/IBookProvider';
+import { IScoringStrategy } from './scoring/interfaces/IScoringStrategy';
 
 // RecommendationService dépend de l'abstraction IBookProvider,
 // pas de la classe concrète BookService.
 export class RecommendationService {
   constructor(private bookProvider: IBookProvider) {}
 
+  // Ancienne méthode : bonus simple par genre préféré (gardée pour compatibilité)
   recommendBooks(preferredGenres: string[]): Book[] {
-    //On récupère tous les livres en réutilisant la logique déjà écrite dasn BookService
     const books = this.bookProvider.getAllBooks();
 
     return books
-    //Pour chaiuqe livres on calcule son score et on garde les deux ensemble
       .map(book => ({
         book,
         score: this.calculateScore(book, preferredGenres),
       }))
-      //Tri décroissant, le score le plus haut arrive en haut
       .sort((a, b) => b.score - a.score)
       .map(entry => entry.book);
   }
@@ -29,5 +28,20 @@ export class RecommendationService {
     }
 
     return score;
+  }
+
+  // Nouvelle méthode : scoring par stratégie interchangeable (pattern Strategy).
+  // RecommendationService ne sait pas COMMENT le score est calculé (barycentre
+  // ou autre chose plus tard), il sait juste appeler .score() sur chaque livre.
+  recommendWithStrategy(strategy: IScoringStrategy): Book[] {
+    const books = this.bookProvider.getAllBooks();
+
+    return books
+      .map(book => ({
+        book,
+        score: strategy.score(book),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .map(entry => entry.book);
   }
 }

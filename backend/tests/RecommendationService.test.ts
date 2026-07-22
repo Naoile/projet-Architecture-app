@@ -1,6 +1,7 @@
 import { RecommendationService } from '../src/services/RecommendationService';
 import { IBookProvider } from '../src/services/interfaces/IBookProvider';
-import { Book, } from '../src/models/Book';
+import { BarycenterScoringStrategy } from '../src/services/scoring/BarycenterScoringStrategy';
+import { Book } from '../src/models/Book';
 import { BookFilters } from '../src/services/BookService';
 
 // Faux provider : il respecte IBookProvider, donc RecommendationService
@@ -19,9 +20,10 @@ class FakeBookProvider implements IBookProvider {
 
 describe('RecommendationService', () => {
   let recommendationService: RecommendationService;
+  let fakeProvider: FakeBookProvider;
 
   beforeEach(() => {
-    const fakeProvider = new FakeBookProvider();
+    fakeProvider = new FakeBookProvider();
     recommendationService = new RecommendationService(fakeProvider);
   });
 
@@ -32,13 +34,35 @@ describe('RecommendationService', () => {
 
   it('trie les livres par score décroissant sans préférence de genre', () => {
     const recommendations = recommendationService.recommendBooks([]);
-    // Sans bonus, le score = la note. Dune (4.9) doit arriver en premier.
     expect(recommendations[0].title).toBe('Dune');
   });
 
   it('applique le bonus aux genres préférés et change l\'ordre', () => {
-    // Le Petit Prince (4.8) + bonus de 2 = 6.8, ça doit passer devant Dune (4.9)
     const recommendations = recommendationService.recommendBooks(['Conte']);
     expect(recommendations[0].title).toBe('Le Petit Prince');
+  });
+
+  it('deux profils utilisateur différents donnent deux classements différents (barycentre)', () => {
+    const allBooks = fakeProvider.getAllBooks();
+
+    // Profil A : aime "Le Petit Prince" (pas cher, bien noté)
+    const strategyA = new BarycenterScoringStrategy(allBooks, [1]);
+    const recommendationsA = recommendationService.recommendWithStrategy(strategyA);
+
+    // Profil B : aime "Dune" (le plus cher du catalogue)
+    const strategyB = new BarycenterScoringStrategy(allBooks, [3]);
+    const recommendationsB = recommendationService.recommendWithStrategy(strategyB);
+
+    // Les deux classements doivent être différents : c'est la preuve
+    // que le profil utilisateur influence bien le résultat.
+    expect(recommendationsA.map(b => b.id)).not.toEqual(recommendationsB.map(b => b.id));
+  });
+
+  it('sans favoris, le barycentre renvoie un profil neutre', () => {
+    const allBooks = fakeProvider.getAllBooks();
+    const strategy = new BarycenterScoringStrategy(allBooks, []);
+    const recommendations = recommendationService.recommendWithStrategy(strategy);
+
+    expect(recommendations).toHaveLength(3);
   });
 });
