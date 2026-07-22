@@ -15,7 +15,8 @@ const bookRepository = new InMemoryBookRepository();
 const bookService = new BookService(bookRepository);
 const bookController = new BookController(bookService);
 
-// RecommendationService dépend de BookService (pas d'un repository)
+// RecommendationService dépend de l'interface IBookProvider,
+// que bookService implémente (pas de dépendance à la classe concrète)
 const recommendationService = new RecommendationService(bookService);
 const recommendationController = new RecommendationController(recommendationService);
 
