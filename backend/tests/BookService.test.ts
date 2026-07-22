@@ -3,7 +3,6 @@ import { IBookRepository } from '../src/repositories/interfaces/IBookRepository'
 import { Book } from '../src/models/Book';
 
 
-// Faux repository, juste pour le test — ne touche jamais à une vraie base
 class FakeBookRepository implements IBookRepository {
   private books: Book[] = [
     { id: 1, title: 'Le Petit Prince', author: 'Saint-Exupéry', genre: 'Conte', rating: 4.8, price: 7.5 },

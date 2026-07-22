@@ -1,12 +1,14 @@
 import { Book } from '../models/Book';
-import { BookService } from './BookService';
+import { IBookProvider } from './interfaces/IBookProvider';
 
+// RecommendationService dépend de l'abstraction IBookProvider,
+// pas de la classe concrète BookService.
 export class RecommendationService {
-  constructor(private bookService: BookService) {}
+  constructor(private bookProvider: IBookProvider) {}
 
   recommendBooks(preferredGenres: string[]): Book[] {
     //On récupère tous les livres en réutilisant la logique déjà écrite dasn BookService
-    const books = this.bookService.getAllBooks();
+    const books = this.bookProvider.getAllBooks();
 
     return books
     //Pour chaiuqe livres on calcule son score et on garde les deux ensemble

@@ -1,5 +1,6 @@
 import { Book } from '../models/Book';
 import { IBookRepository } from '../repositories/interfaces/IBookRepository';
+import { IBookProvider } from './interfaces/IBookProvider';
 
 export interface BookFilters {
   genre?: string;
@@ -8,7 +9,9 @@ export interface BookFilters {
   maxPrice?: number;
 }
 
-export class BookService {
+// BookService implémente IBookProvider : c'est ce qui permet à
+// RecommendationService de l'utiliser sans connaître la classe concrète.
+export class BookService implements IBookProvider {
   constructor(private bookRepository: IBookRepository) {}
 
   getAllBooks(filters?: BookFilters): Book[] {
